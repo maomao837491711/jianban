@@ -3,15 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>加密货币周期监控</title>
+    <title>全网减产周期监控</title>
     <style>
         :root {
             --bg-color: #0d1117;
             --card-bg: #161b22;
             --text-main: #c9d1d9;
             --text-highlight: #58a6ff;
+            
+            /* 币种主题色 */
             --btc-color: #f7931a;
             --ltc-color: #345d9d;
+            --dash-color: #008de4;
+            --etc-color: #34fa58;
+
             --bull-color: #238636;
             --bear-color: #da3633;
             --gold-color: #d29922;
@@ -32,6 +37,8 @@
             font-size: 1.4rem;
             margin-bottom: 15px;
             text-transform: uppercase;
+            font-weight: 800;
+            letter-spacing: 1px;
         }
         .container {
             width: 100%;
@@ -80,48 +87,59 @@
         .bear-val { color: #f85149; }
         .gold-val { color: var(--gold-color); font-size: 1.1rem; }
         
-        /* 动态倒计时行特别样式 */
         .dynamic-row {
             background: rgba(255,255,255,0.03);
-            margin: 0 -20px; /* 抵消卡片padding */
+            margin: 0 -20px;
             padding: 10px 20px;
             border-bottom: 1px solid rgba(255,255,255,0.05);
         }
 
-        /* 减半卡片样式 */
+        /* 各币种左侧颜色条 */
         .card.btc::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background-color: var(--btc-color); }
         .card.ltc::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background-color: var(--ltc-color); }
+        .card.dash::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background-color: var(--dash-color); }
+        .card.etc::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background-color: var(--etc-color); }
 
         .coin-header { display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
         .coin-name { font-size: 1.2rem; font-weight: bold; color: #ffffff; }
-        .coin-symbol { font-size: 0.9rem; opacity: 0.7; background: #21262d; padding: 2px 6px; border-radius: 4px; }
+        .coin-symbol { font-size: 0.9rem; opacity: 0.8; background: #21262d; padding: 2px 8px; border-radius: 4px; font-weight: bold;}
+        
+        .btc .coin-symbol { color: var(--btc-color); }
+        .ltc .coin-symbol { color: var(--ltc-color); }
+        .dash .coin-symbol { color: var(--dash-color); }
+        .etc .coin-symbol { color: var(--etc-color); }
+
         .info-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; }
         .label { color: #8b949e; }
         .value { font-family: monospace; color: #e6edf3; }
         .countdown-box { background: #0d1117; margin-top: 15px; padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #30363d; }
-        .timer { font-size: 1.6rem; font-weight: bold; font-family: monospace; color: var(--text-highlight); margin: 5px 0; }
+        .timer { font-size: 1.4rem; font-weight: bold; font-family: monospace; color: var(--text-highlight); margin: 5px 0; }
         .date-est { font-size: 0.8rem; color: #8b949e; }
         .progress-container { margin-top: 15px; background-color: #21262d; border-radius: 10px; height: 8px; overflow: hidden; }
         .progress-bar { height: 100%; border-radius: 10px; transition: width 1s ease; }
+        
+        /* 进度条颜色适配 */
         .btc .progress-bar { background-color: var(--btc-color); }
         .ltc .progress-bar { background-color: var(--ltc-color); }
+        .dash .progress-bar { background-color: var(--dash-color); }
+        .etc .progress-bar { background-color: var(--etc-color); }
+
         .loading { text-align: center; padding: 20px; color: #8b949e; }
-        .refresh-btn { margin-top: 20px; padding: 12px 25px; background: #238636; color: white; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; width: 100%; }
+        .refresh-btn { margin-top: 20px; padding: 12px 25px; background: #238636; color: white; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; width: 100%; margin-bottom: 30px;}
     </style>
 </head>
 <body>
 
-    <h1>📊 市场周期监控</h1>
+    <h1>📊 全网减产监控</h1>
 
     <div class="container">
         
         <!-- 🔮 周期预测看板 -->
         <div class="card prediction-card">
             <div class="pred-header">
-                <span>🔮 周期预测</span>
+                <span>🔮 宏观周期预测</span>
                 <span style="font-size: 0.8rem; color: #e6edf3;" id="today-date">今天: --/--</span>
             </div>
-            
             <div class="pred-row">
                 <span class="pred-label">本轮牛市最高价</span>
                 <span class="pred-value gold-val">126,199 U</span>
@@ -134,86 +152,108 @@
                 <span class="pred-label">🐻 熊市低点预测</span>
                 <span class="pred-value bear-val">2026-10-05</span>
             </div>
-
-            <!-- 动态倒计时区域 -->
             <div class="pred-row dynamic-row" style="margin-top: 10px; border-top: 1px dashed #30363d;">
                 <span class="pred-label" id="peak-label">距离牛市顶点还有</span>
-                <span class="pred-value" style="color: #fff;" id="peak-days">计算中...</span>
+                <span class="pred-value" style="color: #fff;" id="peak-days">--</span>
             </div>
             <div class="pred-row dynamic-row" style="border-bottom: none;">
                 <span class="pred-label">距离熊市低点还有</span>
-                <span class="pred-value" style="color: var(--bear-color);" id="bear-days">计算中...</span>
+                <span class="pred-value" style="color: var(--bear-color);" id="bear-days">--</span>
             </div>
         </div>
 
-        <!-- 区块减半数据 -->
+        <!-- 币种列表 -->
         <div id="app">
-            <div class="loading">正在连接链上数据...</div>
+            <div class="loading">正在同步全网节点数据...</div>
         </div>
     </div>
 
-    <button class="refresh-btn" onclick="initData()">🔄 刷新区块数据</button>
+    <button class="refresh-btn" onclick="initData()">🔄 刷新全网数据</button>
 
     <script>
-        // === 1. 日期逻辑 (智能修正文案) ===
+        // === 1. 周期计算逻辑 ===
         function updateDateInfo() {
             const now = new Date();
             document.getElementById('today-date').innerText = "今天: " + now.toLocaleDateString('zh-CN', {month:'2-digit', day:'2-digit'});
 
-            // 1. 牛市顶点逻辑
+            // 牛市顶点
             const bullDate = new Date("2025-10-06T00:00:00");
-            const diffBull = bullDate - now;
-            const daysToBull = Math.ceil(diffBull / (1000 * 60 * 60 * 24));
-            
+            const diffBull = Math.ceil((bullDate - now) / (86400000));
             const peakLabel = document.getElementById('peak-label');
             const peakValue = document.getElementById('peak-days');
 
-            if (daysToBull > 0) {
+            if (diffBull > 0) {
                 peakLabel.innerText = "距离牛市顶点还有";
                 peakLabel.style.color = "#8b949e";
-                peakValue.innerText = `${daysToBull} 天`;
-                peakValue.style.color = "#3fb950"; // 还没到显示绿色
+                peakValue.innerText = `${diffBull} 天`;
+                peakValue.style.color = "#3fb950";
             } else {
                 peakLabel.innerText = "距离牛市顶点已过";
-                peakLabel.style.color = "#d29922"; // 过了显示金色
-                peakValue.innerText = `${Math.abs(daysToBull)} 天`;
-                peakValue.style.color = "#fff";
+                peakLabel.style.color = "#d29922";
+                peakValue.innerText = `${Math.abs(diffBull)} 天`;
             }
 
-            // 2. 熊市低点逻辑
+            // 熊市低点
             const bearDate = new Date("2026-10-05T00:00:00");
-            const diffBear = bearDate - now;
-            const daysToBear = Math.ceil(diffBear / (1000 * 60 * 60 * 24));
-            
+            const diffBear = Math.ceil((bearDate - now) / (86400000));
             const bearValue = document.getElementById('bear-days');
-            if (daysToBear > 0) {
-                bearValue.innerText = `${daysToBear} 天`;
-            } else {
-                bearValue.innerText = `已过 ${Math.abs(daysToBear)} 天`;
-            }
+            if (diffBear > 0) bearValue.innerText = `${diffBear} 天`;
+            else bearValue.innerText = `已过 ${Math.abs(diffBear)} 天`;
         }
-        
-        // 立即执行日期更新
         updateDateInfo();
 
-        // === 2. 区块链数据 ===
+        // === 2. 多币种配置 (去除了 DOGE) ===
         const COINS = [
-            { id: 'btc', name: 'Bitcoin', symbol: 'BTC', halvingBlock: 1050000, blockTimeSec: 600, api: 'https://mempool.space/api/blocks/tip/height', lastHalvingBlock: 840000 },
-            { id: 'ltc', name: 'Litecoin', symbol: 'LTC', halvingBlock: 3360000, blockTimeSec: 150, api: 'https://api.blockcypher.com/v1/ltc/main', lastHalvingBlock: 2520000 }
+            { 
+                id: 'btc', name: 'Bitcoin', symbol: 'BTC', 
+                targetBlock: 1050000, interval: 210000, lastBlock: 840000, timePerBlock: 600,
+                api: 'https://mempool.space/api/blocks/tip/height', type: 'mempool',
+                desc: '减半'
+            },
+            { 
+                id: 'ltc', name: 'Litecoin', symbol: 'LTC', 
+                targetBlock: 3360000, interval: 840000, lastBlock: 2520000, timePerBlock: 150,
+                api: 'https://api.blockcypher.com/v1/ltc/main', type: 'blockcypher',
+                desc: '减半'
+            },
+            { 
+                id: 'dash', name: 'Dash', symbol: 'DASH', 
+                targetBlock: 2312640, interval: 210240, lastBlock: 2102400, timePerBlock: 156,
+                api: 'https://api.blockcypher.com/v1/dash/main', type: 'blockcypher',
+                desc: '减产(7%)'
+            },
+            { 
+                id: 'etc', name: 'ETC', symbol: 'ETC', 
+                targetBlock: 20000000, interval: 5000000, lastBlock: 15000000, timePerBlock: 13,
+                api: 'https://etc.blockscout.com/api?module=block&action=eth_blockNumber', type: 'blockscout',
+                desc: '减产(20%)'
+            }
         ];
 
+        // === 3. 数据获取与渲染 ===
         async function initData() {
             const app = document.getElementById('app');
-            app.innerHTML = '<div class="loading">正在同步全网数据...</div>';
+            app.innerHTML = '<div class="loading">正在连接全球节点获取最新高度...</div>';
             let htmlContent = '';
 
             for (let coin of COINS) {
                 try {
                     let currentHeight = await fetchBlockHeight(coin);
-                    let blocksLeft = coin.halvingBlock - currentHeight;
-                    let totalSecondsLeft = blocksLeft * coin.blockTimeSec;
+                    
+                    // 计算逻辑
+                    let blocksLeft = coin.targetBlock - currentHeight;
+                    if (blocksLeft <= 0) {
+                         // 简单的自动周期递增逻辑，防止显示负数
+                         blocksLeft = coin.interval + blocksLeft; 
+                         // 注意：这里只是简单修正显示，严谨的做法需要更新lastBlock
+                    }
+
+                    let totalSecondsLeft = blocksLeft * coin.timePerBlock;
                     let estDate = new Date(new Date().getTime() + totalSecondsLeft * 1000);
-                    let progress = ((currentHeight - coin.lastHalvingBlock) / (coin.halvingBlock - coin.lastHalvingBlock)) * 100;
+                    
+                    // 进度条
+                    let progress = ((currentHeight - coin.lastBlock) / (coin.targetBlock - coin.lastBlock)) * 100;
+                    progress = Math.min(100, Math.max(0, progress));
 
                     htmlContent += `
                         <div class="card ${coin.id}">
@@ -222,17 +262,20 @@
                                 <span class="coin-symbol">${coin.symbol}</span>
                             </div>
                             <div class="info-row"><span class="label">当前高度:</span><span class="value">#${currentHeight.toLocaleString()}</span></div>
-                            <div class="info-row"><span class="label">减半高度:</span><span class="value">#${coin.halvingBlock.toLocaleString()}</span></div>
-                            <div class="progress-container"><div class="progress-bar" style="width: ${Math.min(100,Math.max(0,progress))}%"></div></div>
-                            <div style="text-align:right; font-size:12px; margin-top:5px; color:#8b949e">${progress.toFixed(2)}%</div>
+                            <div class="info-row"><span class="label">下轮${coin.desc}:</span><span class="value">#${coin.targetBlock.toLocaleString()}</span></div>
+                            
+                            <div class="progress-container"><div class="progress-bar" style="width: ${progress}%"></div></div>
+                            <div style="text-align:right; font-size:12px; margin-top:5px; color:#8b949e">本轮进度: ${progress.toFixed(2)}%</div>
+                            
                             <div class="countdown-box">
-                                <div class="label">预计减半倒计时</div>
+                                <div class="label">预计${coin.desc}倒计时</div>
                                 <div class="timer">${formatTime(totalSecondsLeft)}</div>
-                                <div class="date-est">预计: ${estDate.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false })}</div>
+                                <div class="date-est">预计: ${estDate.toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute:'2-digit' })}</div>
                             </div>
                         </div>`;
                 } catch (error) {
-                    htmlContent += `<div class="card"><div style="padding:20px; text-align:center; color:red;">${coin.name} API 繁忙，请稍后刷新</div></div>`;
+                    console.error(coin.name, error);
+                    htmlContent += `<div class="card ${coin.id}"><div class="coin-header"><span class="coin-name">${coin.name}</span></div><div style="text-align:center; color:#da3633; padding:10px;">API 连接超时 (请稍后刷新)</div></div>`;
                 }
             }
             app.innerHTML = htmlContent;
@@ -241,16 +284,20 @@
         async function fetchBlockHeight(coin) {
             const r = await fetch(coin.api);
             const d = await r.json();
-            return coin.id === 'btc' ? parseInt(d) : d.height;
+            
+            if (coin.type === 'mempool') return parseInt(d);
+            if (coin.type === 'blockcypher') return d.height;
+            if (coin.type === 'blockscout') return parseInt(d.result, 16);
+            return 0;
         }
 
         function formatTime(s) {
-            if (s <= 0) return "已减半";
-            const d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60);
-            return `${d}天 ${h}时 ${m}分`;
+            if (s <= 0) return "目标已达成";
+            const d = Math.floor(s / 86400);
+            const h = Math.floor((s % 86400) / 3600);
+            return `${d}天 ${h}时`;
         }
         
-        // 立即执行数据获取
         initData();
     </script>
 </body>
