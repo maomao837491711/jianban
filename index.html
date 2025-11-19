@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <!-- 这一行确保在手机上显示比例正常 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的脚本工具</title>
+    <style>
+        body { 
+            font-family: sans-serif; 
+            padding: 20px; 
+            text-align: center; 
+            background-color: #f0f0f0;
+        }
+        .box {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        input {
+            width: 80%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #2ea44f; /* GitHub绿 */
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        button:active { background-color: #258542; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>🚀 脚本运行成功</h2>
+        <p>这是你的专属网页工具</p>
+        
+        <!-- 这里是一个输入框示例 -->
+        <input type="text" id="myInput" placeholder="输入点什么试试...">
+        <br>
+        
+        <!-- 这里是按钮 -->
+        <button onclick="runMyScript()">点击运行</button>
+    </div>
+
+    <script>
+        // 你的脚本逻辑写在这里
+        function runMyScript() {
+            var text = document.getElementById('myInput').value;
+            if (text) {
+                alert("你刚才输入了：" + text);
+            } else {
+                alert("你好！脚本逻辑正在浏览器中运行！");
+            }
+        }
+    </script>
+</body>
+</html>
