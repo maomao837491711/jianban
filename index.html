@@ -5,9 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">  
     <title>市场周期监控</title>  
       
-    <!-- 图标 -->  
-    <link rel="icon" href="https://maomao837491711.github.io/jianban/jianbanlogo2.png">  
-    <link rel="apple-touch-icon" sizes="180x180" href="https://maomao837491711.github.io/jianban/jianbanlogo2.png">  
+    <!--   
+       🔥 核心修改在这里 🔥  
+       我使用了一个在线工具，把你的 jianbanlogo2.png 自动压缩成了 180x180 像素  
+       这样 iPhone 就能立刻读取，不会因为图片太大而失败了  
+    -->  
+    <link rel="icon" href="https://wsrv.nl/?url=maomao837491711.github.io/jianban/jianbanlogo2.png&w=180&h=180&output=png">  
+    <link rel="apple-touch-icon" sizes="180x180" href="https://wsrv.nl/?url=maomao837491711.github.io/jianban/jianbanlogo2.png&w=180&h=180&output=png">  
       
     <meta name="apple-mobile-web-app-capable" content="yes">  
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">  
@@ -26,14 +30,12 @@
         .label { color: #8b949e; }  
         .val { font-family: monospace; font-weight: bold; color: #e6edf3; }  
           
-        /* === 颜色定义 === */  
+        /* 颜色定义 */  
         .green { color: #3fb950 !important; }  
-        .red { color: #ff7b72 !important; } /* 普通红 */  
+        .red { color: #ff7b72 !important; }  
         .gold { color: #d29922 !important; }  
-          
-        /* 新增：纯白色 */  
         .white { color: #ffffff !important; }  
-        /* 新增：鲜红色 (更亮) */  
+        /* 鲜红色 */  
         .bright-red { color: #ff3333 !important; text-shadow: 0 0 10px rgba(255, 51, 51, 0.2); }  
           
         .progress-box { margin-top: 12px; background: #21262d; border-radius: 6px; height: 8px; overflow: hidden; width: 100%; }  
@@ -72,11 +74,7 @@
             <div style="margin:10px 0; border-top:1px dashed #30363d"></div>  
               
             <div class="row"><span class="label">距离牛市顶点已过</span><span class="val" id="peak-days">--</span></div>  
-              
-            <!-- 修改点1：这里改成白色 (class="val white") -->  
             <div class="row"><span class="label">距离熊市低点</span><span class="val white" id="bear-days">--</span></div>  
-              
-            <!-- 修改点2：这里改成鲜红色 (JS中控制 class="val bright-red") -->  
             <div class="row"><span class="label">距离最低点还差</span><span class="val bright-red" id="price-gap">计算中...</span></div>  
         </div>  
   
@@ -123,7 +121,6 @@
                 var diff = Math.floor(price - 38000);  
                 var drop = ((peakPrice - price) / peakPrice * 100).toFixed(2);  
                   
-                // 修改点3：强制应用鲜红色样式  
                 gapEl.className = "val bright-red";   
   
                 if (diff > 0) {  
