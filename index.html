@@ -4,14 +4,15 @@
     <meta charset="UTF-8">  
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">  
     <title>加密货币周期监控</title>  
-    <!-- 图标 -->  
+      
+    <!-- 图标系统 -->  
     <link rel="icon" href="https://maomao837491711.github.io/jianban/jianbanlogo2.png">  
     <link rel="apple-touch-icon" sizes="180x180" href="https://maomao837491711.github.io/jianban/jianbanlogo2.png">  
-    <!-- Web App -->  
+      
+    <!-- Web App 模式 -->  
     <meta name="apple-mobile-web-app-capable" content="yes">  
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">  
     <meta name="apple-mobile-web-app-title" content="周期监控">  
-    <meta name="theme-color" content="#0d1117">  
   
     <style>  
         :root { --bg: #0d1117; --card: #161b22; --text: #c9d1d9; --btc: #f7931a; --ltc: #345d9d; --bull: #238636; --bear: #da3633; --gold: #d29922; --border: #30363d; }  
@@ -25,7 +26,6 @@
         .pred-row:last-child { border-bottom: none; }  
         .pred-label { color: #8b949e; font-size: 0.9rem; }  
         .pred-value { font-family: monospace; font-weight: 600; font-size: 1rem; }  
-        .dynamic-row { background: rgba(255,255,255,0.02); margin: 0 -20px; padding: 12px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); }  
         .coin-header { display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 12px; }  
         .coin-name { font-size: 1.3rem; font-weight: 700; color: #fff; }  
         .coin-symbol { font-size: 0.9rem; background: #30363d; padding: 4px 8px; border-radius: 6px; color: white; }  
@@ -34,19 +34,22 @@
         .progress-bar { height: 100%; border-radius: 10px; transition: width 1s ease; }  
         .countdown-box { background: rgba(13, 17, 23, 0.6); margin-top: 15px; padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #30363d; }  
         .timer { font-size: 1.8rem; font-weight: 800; font-family: monospace; color: #58a6ff; margin: 5px 0; }  
-        .cache-badge { font-size: 0.7rem; background: #30363d; color: #8b949e; padding: 2px 6px; border-radius: 4px; margin-left: 5px; display: none; }  
+          
         .refresh-btn { margin-top: 25px; padding: 16px 25px; background: #238636; color: white; border: none; border-radius: 12px; font-size: 1.05rem; font-weight: 600; cursor: pointer; width: 100%; max-width: 600px; margin-bottom: 10px; }  
-        .refresh-btn:disabled { background: #30363d; color: #8b949e; }  
+        .refresh-btn:active { transform: scale(0.98); }  
         .auto-refresh-tip { font-size: 12px; color: #484f58; margin-bottom: 40px; text-align: center; }  
           
+        .bull-val { color: var(--bull); } .bear-val { color: var(--bear); } .gold-val { color: var(--gold); } .price-diff { color: #ff7b72; font-weight: bold; }  
         .card.btc::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background-color: var(--btc); }  
         .card.ltc::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background-color: var(--ltc); }  
-        .bull-val { color: var(--bull); } .bear-val { color: var(--bear); } .gold-val { color: var(--gold); } .price-diff { color: #ff7b72; font-weight: bold; }  
     </style>  
 </head>  
 <body>  
+  
     <h1>📊 市场周期监控</h1>  
+  
     <div class="container">  
+        <!-- 预测看板 -->  
         <div class="card prediction-card">  
             <div class="coin-header" style="border-bottom:none; margin-bottom:5px;">  
                 <span style="color:var(--gold); font-weight:bold;">🔮 周期预测</span>  
@@ -56,37 +59,24 @@
             <div class="pred-row"><span class="pred-label">🐻 熊市低点日期</span><span class="pred-value bear-val">2026-10-05</span></div>  
             <div class="pred-row"><span class="pred-label">📈 本轮牛市最高价</span><span class="pred-value gold-val">126,199 U</span></div>  
             <div class="pred-row"><span class="pred-label">📉 预测熊市低点</span><span class="pred-value bear-val">38,000 U</span></div>  
-            <div class="pred-row dynamic-row"><span class="pred-label" id="peak-label">距离牛市顶点还有</span><span class="pred-value" style="color:#fff;" id="peak-days">--</span></div>  
-            <div class="pred-row dynamic-row"><span class="pred-label">距离熊市低点还有</span><span class="pred-value bear-val" id="bear-days">--</span></div>  
-            <div class="pred-row dynamic-row" style="border-bottom:none;">  
-                <span class="pred-label">距离最低点还差 <span id="price-cached" class="cache-badge">缓存</span></span>  
-                <span class="pred-value price-diff" id="price-gap">连接中...</span>  
-            </div>  
+            <div style="border-top: 1px dashed #30363d; margin: 10px 0;"></div>  
+            <div class="pred-row"><span class="pred-label" id="peak-label">距离牛市顶点</span><span class="pred-value" style="color:#fff;" id="peak-days">--</span></div>  
+            <div class="pred-row"><span class="pred-label">距离熊市低点</span><span class="pred-value bear-val" id="bear-days">--</span></div>  
+            <div class="pred-row"><span class="pred-label">距离最低点还差</span><span class="pred-value price-diff" id="price-gap">获取中...</span></div>  
         </div>  
         <div id="app"></div>  
     </div>  
-    <div><button class="refresh-btn" onclick="manualRefresh()">🔄 刷新数据</button><div class="auto-refresh-tip">双线路自动切换 | 每 10 分钟自动刷新</div></div>  
+  
+    <div>  
+        <button class="refresh-btn" onclick="runData()">🔄 刷新数据</button>  
+        <div class="auto-refresh-tip">每 10 分钟自动刷新</div>  
+    </div>  
   
     <script>  
-        // === 多线路请求器 (核心) ===  
-        async function fetchWithFallback(urls) {  
-            const ts = new Date().getTime();  
-            for (let url of urls) {  
-                try {  
-                    const finalUrl = url.includes('?') ? `$${url}&t=$${ts}` : `$${url}?t=$${ts}`;  
-                    const controller = new AbortController();  
-                    setTimeout(() => controller.abort(), 4000); // 4秒超时  
-                    const res = await fetch(finalUrl, { signal: controller.signal });  
-                    if (res.ok) return await res.json();  
-                } catch (e) { continue; } // 失败则尝试下一个  
-            }  
-            throw new Error("All APIs failed");  
-        }  
-  
-        // === 1. 日期逻辑 ===  
-        function updateDateInfo() {  
+        // 1. 日期逻辑  
+        function updateDate() {  
             const now = new Date();  
-            document.getElementById('today-date').innerText = "今天: " + now.toLocaleDateString('zh-CN');  
+            document.getElementById('today-date').innerText = now.toLocaleDateString('zh-CN');  
               
             const bullDate = new Date("2025-10-06");  
             const diffBull = Math.ceil((bullDate - now) / 86400000);  
@@ -106,110 +96,82 @@
             document.getElementById('bear-days').innerText = diffBear > 0 ? `$${diffBear} 天` : `已过 $${Math.abs(diffBear)} 天`;  
         }  
   
-        // === 2. 价格逻辑 (多源备用) ===  
-        async function updatePriceGap() {  
-            const BULL_PEAK = 126199; const BEAR_LOW = 38000;  
+        // 2. 价格逻辑 (只用币安，最稳)  
+        async function updatePrice() {  
             const gapEl = document.getElementById('price-gap');  
-            const badge = document.getElementById('price-cached');  
-            let price = 0;  
-  
-            // 价格源：Binance -> Mempool -> CoinGecko  
-            const apis = [  
-                'https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT',  
-                'https://mempool.space/api/v1/prices',  
-                'https://api.coincap.io/v2/assets/bitcoin'  
-            ];  
-  
             try {  
-                const data = await fetchWithFallback(apis);  
-                // 适配不同API的数据格式  
-                if (data.price) price = parseFloat(data.price); // Binance  
-                else if (data.USD) price = parseFloat(data.USD); // Mempool  
-                else if (data.data && data.data.priceUsd) price = parseFloat(data.data.priceUsd); // CoinCap  
-                  
-                localStorage.setItem('btc_price', JSON.stringify({t:Date.now(), v:price}));  
-                badge.style.display = 'none';  
+                const res = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT');  
+                const data = await res.json();  
+                const price = parseFloat(data.price);  
+                const diff = Math.floor(price - 38000);  
+                gapEl.innerText = diff > 0 ? `${diff.toLocaleString()} U` : `已跌破!`;  
             } catch (e) {  
-                const c = JSON.parse(localStorage.getItem('btc_price'));  
-                if (c) { price = c.v; badge.style.display = 'inline-block'; }  
-                else { gapEl.innerText = "API 忙碌"; return; }  
+                gapEl.innerText = "连接超时";  
             }  
-  
-            const diff = Math.floor(price - BEAR_LOW);  
-            gapEl.innerText = diff > 0 ? `${diff.toLocaleString()} U` : `已跌破!`;  
         }  
   
-        // === 3. 区块数据 (多源备用) ===  
+        // 3. 区块逻辑 (只用 Mempool 和 BlockCypher)  
         const COINS = [  
-            {   
-                id: 'btc', name: 'Bitcoin', symbol: 'BTC',   
-                halving: 1050000, last: 840000, time: 600,  
-                // BTC源：Mempool -> Blockchain.info -> Blockchair  
-                apis: ['https://mempool.space/api/blocks/tip/height', 'https://blockchain.info/q/getblockcount']  
-            },  
-            {   
-                id: 'ltc', name: 'Litecoin', symbol: 'LTC',   
-                halving: 3360000, last: 2520000, time: 150,  
-                // LTC源：BlockCypher -> Blockchair (API key free tier usually works better via proxy but let's try direct fallback)  
-                apis: ['https://api.blockcypher.com/v1/ltc/main', 'https://chain.so/api/v2/get_info/LTC']   
-            }  
+            { id: 'btc', name: 'Bitcoin', symbol: 'BTC', halving: 1050000, last: 840000, time: 600, api: 'https://mempool.space/api/blocks/tip/height' },  
+            { id: 'ltc', name: 'Litecoin', symbol: 'LTC', halving: 3360000, last: 2520000, time: 150, api: 'https://api.blockcypher.com/v1/ltc/main' }  
         ];  
   
-        async function initBlockData() {  
+        async function updateBlocks() {  
             const app = document.getElementById('app');  
-            const tasks = COINS.map(async (coin) => {  
-                let height = 0, isCached = false;  
+            let html = '';  
+  
+            for (const coin of COINS) {  
+                let height = 0;  
+                let errorMsg = '';  
+                  
                 try {  
-                    const data = await fetchWithFallback(coin.apis);  
-                    // 适配格式  
-                    if (typeof data === 'number') height = data; // Plain text/number response  
-                    else if (data.height) height = data.height; // BlockCypher  
-                    else if (data.data && data.data.blocks) height = data.data.blocks; // Chain.so  
-                    localStorage.setItem(coin.id, JSON.stringify({t:Date.now(), v:height}));  
+                    const res = await fetch(coin.api);  
+                    const data = await res.json();  
+                    // 判断数据格式：BTC返回数字，LTC返回对象  
+                    if (typeof data === 'number') height = data;  
+                    else if (data.height) height = data.height;  
+                    else throw new Error('Format Error');  
                 } catch (e) {  
-                    const c = JSON.parse(localStorage.getItem(coin.id));  
-                    if (c) { height = c.v; isCached = true; }  
-                    else return `<div class="card"><div class="coin-header"><span class="coin-name">${coin.name}</span></div><div style="padding:20px;text-align:center;color:#f85149;">节点同步中...</div></div>`;  
+                    errorMsg = 'API 暂时限流';  
+                }  
+  
+                if (errorMsg) {  
+                    html += `<div class="card $${coin.id}"><div class="coin-header"><span class="coin-name">$${coin.name}</span></div><div style="padding:20px;text-align:center;color:#f85149;">${errorMsg}<br><span style="font-size:12px;color:#8b949e">请稍后刷新</span></div></div>`;  
+                    continue;  
                 }  
   
                 let left = Math.max(0, coin.halving - height);  
                 let sec = left * coin.time;  
                 let date = new Date(Date.now() + sec * 1000).toLocaleString('zh-CN', {year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', hour12:false});  
                 let prog = Math.min(100, Math.max(0, ((height - coin.last) / (coin.halving - coin.last)) * 100));  
-                let cacheTag = isCached ? `<span class="cache-badge" style="display:inline-block">缓存</span>` : '';  
   
-                return `  
+                html += `  
                     <div class="card ${coin.id}">  
-                        <div class="coin-header">  
-                            <span class="coin-name">${coin.name}</span>  
-                            <div>$${cacheTag}<span class="coin-symbol">$${coin.symbol}</span></div>  
-                        </div>  
+                        <div class="coin-header"><span class="coin-name">$${coin.name}</span><span class="coin-symbol">$${coin.symbol}</span></div>  
                         <div class="info-row"><span class="label">当前高度:</span><span style="font-family:monospace;color:#e6edf3">#${height.toLocaleString()}</span></div>  
                         <div class="info-row"><span class="label">减半高度:</span><span style="font-family:monospace;color:#e6edf3">#${coin.halving.toLocaleString()}</span></div>  
                         <div class="progress-container"><div class="progress-bar" style="width:$${prog}%; background-color:var(--$${coin.id})"></div></div>  
                         <div style="text-align:right;font-size:12px;color:#8b949e;margin-top:5px;">${prog.toFixed(2)}%</div>  
                         <div class="countdown-box">  
                             <div style="color:#8b949e;font-size:0.9rem">预计减半倒计时</div>  
-                            <div class="timer" style="color:var(--text-highlight)">$${Math.floor(sec/86400)}天 $${Math.floor((sec%86400)/3600)}时</div>  
+                            <div class="timer" style="color:#58a6ff">$${Math.floor(sec/86400)}天 $${Math.floor((sec%86400)/3600)}时</div>  
                             <div style="color:#8b949e;font-size:0.85rem">预计: ${date}</div>  
                         </div>  
                     </div>`;  
-            });  
-            const res = await Promise.all(tasks);  
-            app.innerHTML = res.join('');  
+            }  
+            app.innerHTML = html;  
         }  
   
-        let loading = false;  
-        async function manualRefresh() {  
-            if (loading) return; loading = true;  
-            const btn = document.querySelector('.refresh-btn');  
-            const txt = btn.innerText; btn.innerText = "📡 搜索可用节点..."; btn.disabled = true;  
-            updateDateInfo(); await Promise.all([updatePriceGap(), initBlockData()]);  
-            btn.innerText = txt; btn.disabled = false; loading = false;  
+        function runData() {  
+            updateDate();  
+            updatePrice();  
+            updateBlocks();  
         }  
   
-        updateDateInfo(); updatePriceGap(); initBlockData();  
-        setInterval(() => { if(!document.hidden) manualRefresh(); }, 600000);  
+        // 启动  
+        runData();  
+        // 10分钟刷新一次  
+        setInterval(runData, 600000);  
     </script>  
 </body>  
 </html>  
