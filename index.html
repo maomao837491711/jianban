@@ -45,9 +45,8 @@
         .btn:disabled { background: #30363d; color: #8b949e; cursor: not-allowed; opacity: 1; }  
         .tip { font-size: 12px; color: #484f58; margin-top: 10px; }  
           
-        /* 更新时的闪烁 */  
-        @keyframes flash { 0% { opacity: 0.6; } 100% { opacity: 1; } }  
-        .updating { animation: flash 0.5s ease-out; }  
+        @keyframes fade { 0% { opacity: 0.6; } 100% { opacity: 1; } }  
+        .updating { animation: fade 0.5s ease-out; }  
     </style>  
 </head>  
 <body>  
@@ -104,13 +103,16 @@
     </div>  
   
     <button id="refresh-btn" class="btn" onclick="manualRefresh()">🔄 手动刷新全部</button>  
-    <div class="tip">价格每 1 分钟自动更新 | 仅在页面显示时运行</div>  
+    <div class="tip">价格每 5 秒自动更新 | 智能防卡顿</div>  
   
     <script>  
         const BULL_PEAK = 126199;  
         const BEAR_LOW = 38000;  
   
-        // === 日期逻辑 ===  
+        // === 🔒 智能锁 (防卡顿核心) ===  
+        let isPriceUpdating = false; // 如果为 true，说明上次请求还没回来，这次就不发了  
+        let isBlockUpdating = false;  
+  
         function updateDate() {  
             var now = new Date();  
             document.getElementById('today-date').innerText = now.toLocaleDateString('zh-CN');  
@@ -135,16 +137,16 @@
             document.getElementById('bear-days').innerText = diffBear + " 天";  
         }  
   
-        // === 价格逻辑 (调整顺序：CoinCap -> Mempool -> Binance) ===  
+        // === 价格逻辑 (5秒极速 + 智能锁) ===  
         async function updatePrice() {  
+            // 🛑 红灯停：如果上次还没刷完，这次直接跳过，绝对不卡  
+            if (isPriceUpdating) return;   
+            isPriceUpdating = true; // 🟢 绿灯行：上锁  
+  
             var gapEl = document.getElementById('price-gap');  
             var price = 0;  
             var timestamp = new Date().getTime();  
   
-            // 🏆 竞速顺序调整：  
-            // 1. CoinCap: 价格更准，免翻墙，放第一。  
-            // 2. Mempool: 极度稳定，作为最强备胎。  
-            // 3. Binance: 如果开了VPN，最后尝试它。  
             var apis = [  
                 { url: 'https://api.coincap.io/v2/assets/bitcoin?t=' + timestamp, type: 'coincap' },  
                 { url: 'https://mempool.space/api/v1/prices?t=' + timestamp, type: 'mempool' },  
@@ -175,14 +177,16 @@
                 gapEl.classList.remove('updating');  
                 void gapEl.offsetWidth;   
                 gapEl.classList.add('updating');  
-  
                 gapEl.className = "val bright-red updating";   
+                  
                 if (diff > 0) gapEl.innerText = diff.toLocaleString() + " U (已跌" + drop + "%)";  
                 else gapEl.innerText = "已跌破底价!";  
             }  
+              
+            // ✅ 任务完成，解锁  
+            isPriceUpdating = false;  
         }  
   
-        // === 区块逻辑 ===  
         async function fetchBlockHeight(url) {  
             try {  
                 var controller = new AbortController();  
@@ -194,11 +198,16 @@
         }  
   
         async function updateBlocks() {  
+            if (isBlockUpdating) return;  
+            isBlockUpdating = true;  
+  
             var btcHeight = await fetchBlockHeight('https://mempool.space/api/blocks/tip/height');  
             if(btcHeight) renderBlockData(btcHeight, 1050000, 840000, 600, 'btc');  
   
             var ltcData = await fetchBlockHeight('https://api.blockcypher.com/v1/ltc/main');  
             if(ltcData && ltcData.height) renderBlockData(ltcData.height, 3360000, 2520000, 150, 'ltc');  
+              
+            isBlockUpdating = false;  
         }  
   
         function renderBlockData(height, halving, last, time, id) {  
@@ -220,14 +229,16 @@
             document.getElementById(id + '-date').innerText = "预计: " + ds;  
         }  
   
-        // === 手动刷新 ===  
         async function manualRefresh() {  
             var btn = document.getElementById('refresh-btn');  
             btn.innerText = "⏳"; btn.disabled = true; btn.style.opacity = "0.8";  
               
             updateDate();  
-            updatePrice();  
-            updateBlocks();  
+            // 手动刷新时，强制重置锁，确保能刷  
+            isPriceUpdating = false;  
+            isBlockUpdating = false;  
+              
+            await Promise.all([updatePrice(), updateBlocks()]);  
   
             setTimeout(function() {  
                 btn.innerText = "✅";  
@@ -235,12 +246,12 @@
             }, 1000);  
         }  
   
-        // 启动  
         manualRefresh();  
   
-        // 定时策略  
-        setInterval(function() { if (!document.hidden) updatePrice(); }, 60000); // 价格1分钟  
-        setInterval(function() { if (!document.hidden) { updateBlocks(); updateDate(); } }, 600000); // 区块10分钟  
+        // ⚡️ 5秒刷新价格（带防堆积锁）  
+        setInterval(function() { if (!document.hidden) updatePrice(); }, 5000);  
+        // 🐢 10分钟刷新区块  
+        setInterval(function() { if (!document.hidden) { updateBlocks(); updateDate(); } }, 600000);  
     </script>  
 </body>  
 </html>  
