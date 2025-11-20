@@ -5,11 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">  
     <title>市场周期监控</title>  
       
-    <!--   
-       ✅ 最终配置：  
-       直接引用你刚刚上传的 jianbanlogo3.png  
-       完全安全，不依赖第三方  
-    -->  
+    <!-- 图标 -->  
     <link rel="icon" href="https://maomao837491711.github.io/jianban/jianbanlogo3.png">  
     <link rel="apple-touch-icon" sizes="180x180" href="https://maomao837491711.github.io/jianban/jianbanlogo3.png">  
       
@@ -30,12 +26,10 @@
         .label { color: #8b949e; }  
         .val { font-family: monospace; font-weight: bold; color: #e6edf3; }  
           
-        /* 颜色配置 */  
         .green { color: #3fb950 !important; }  
         .red { color: #ff7b72 !important; }  
         .gold { color: #d29922 !important; }  
         .white { color: #ffffff !important; }  
-        /* 鲜红色 */  
         .bright-red { color: #ff3333 !important; text-shadow: 0 0 10px rgba(255, 51, 51, 0.2); }  
           
         .progress-box { margin-top: 12px; background: #21262d; border-radius: 6px; height: 8px; overflow: hidden; width: 100%; }  
@@ -78,13 +72,30 @@
             <div class="row"><span class="label">距离最低点还差</span><span class="val bright-red" id="price-gap">计算中...</span></div>  
         </div>  
   
-        <div id="app"></div>  
+        <div id="app">  
+            <!-- 默认占位符，防止页面抖动 -->  
+            <div class="card"><div class="row"><span class="val">数据加载中...</span></div></div>  
+        </div>  
     </div>  
   
     <button id="refresh-btn" class="btn" onclick="refreshData()">🔄 刷新数据</button>  
     <div class="tip">每 10 分钟自动刷新</div>  
   
     <script>  
+        // 通用：带超时的 Fetch，防止卡死  
+        async function fetchWithTimeout(url, ms = 3000) {  
+            const controller = new AbortController();  
+            const id = setTimeout(() => controller.abort(), ms);  
+            try {  
+                const response = await fetch(url, { signal: controller.signal });  
+                clearTimeout(id);  
+                return response;  
+            } catch (error) {  
+                clearTimeout(id);  
+                throw error;  
+            }  
+        }  
+  
         function updateDate() {  
             var now = new Date();  
             document.getElementById('today-date').innerText = now.toLocaleDateString('zh-CN');  
@@ -110,15 +121,11 @@
             document.getElementById('bear-days').innerText = diffBear + " 天";  
         }  
   
-        // === 多线路价格获取 (免翻墙) ===  
         async function updatePrice() {  
             var gapEl = document.getElementById('price-gap');  
             var peakPrice = 126199;  
             var price = 0;  
               
-            // 1. Mempool (优先，国内可用)  
-            // 2. CoinCap (备用，全球可用)  
-            // 3. Binance (最后，需梯子)  
             var apis = [  
                 { url: 'https://mempool.space/api/v1/prices', type: 'mempool' },  
                 { url: 'https://api.coincap.io/v2/assets/bitcoin', type: 'coincap' },  
@@ -127,18 +134,12 @@
   
             for (var i = 0; i < apis.length; i++) {  
                 try {  
-                    var controller = new AbortController();  
-                    var timeoutId = setTimeout(function() { controller.abort(); }, 3000);  
-                      
-                    var res = await fetch(apis[i].url, { signal: controller.signal });  
-                    clearTimeout(timeoutId);  
-  
+                    var res = await fetchWithTimeout(apis[i].url, 3000);  
                     if (res.ok) {  
                         var data = await res.json();  
                         if (apis[i].type === 'mempool') price = parseFloat(data.USD);  
                         else if (apis[i].type === 'coincap') price = parseFloat(data.data.priceUsd);  
                         else if (apis[i].type === 'binance') price = parseFloat(data.price);  
-                          
                         if (price > 0) break;  
                     }  
                 } catch (e) {}  
@@ -163,31 +164,39 @@
             { id: 'ltc', name: 'Litecoin', symbol: 'LTC', halving: 3360000, last: 2520000, time: 150, api: 'https://api.blockcypher.com/v1/ltc/main', cssClass: 'bg-ltc' }  
         ];  
   
+        // 🔥 核心修改：并发加载，防止卡顿  
         async function updateBlocks() {  
             var container = document.getElementById('app');  
-            var html = '';  
-  
-            for (var i = 0; i < COINS.length; i++) {  
-                var coin = COINS[i];  
+              
+            // 同时发起请求，谁也别等谁  
+            var tasks = COINS.map(async function(coin) {  
                 var height = 0;  
-                var error = false;  
-  
                 try {  
-                    var res = await fetch(coin.api);  
+                    var res = await fetchWithTimeout(coin.api, 3000);  
                     var data = await res.json();  
                     if (typeof data === 'number') height = data;  
                     else if (data.height) height = data.height;  
                 } catch (e) {  
-                    error = true;  
+                    console.log(coin.id + " 超时或失败");  
                 }  
+                return { coin: coin, height: height };  
+            });  
   
-                if (error || height === 0) {  
-                    html += '<div class="card"><div class="row"><span class="val">' + coin.name + '</span><span class="label">加载中...</span></div></div>';  
-                    continue;  
+            var results = await Promise.all(tasks);  
+              
+            var html = '';  
+            results.forEach(function(item) {  
+                var coin = item.coin;  
+                var height = item.height;  
+  
+                if (height === 0) {  
+                    html += '<div class="card"><div class="row"><span class="val">' + coin.name + '</span><span class="label red">加载超时</span></div></div>';  
+                    return;  
                 }  
   
                 var left = Math.max(0, coin.halving - height);  
                 var totalSeconds = left * coin.time;  
+                  
                 var totalSpan = coin.halving - coin.last;  
                 var doneSpan = height - coin.last;  
                 var percent = ((doneSpan / totalSpan) * 100);  
@@ -220,7 +229,8 @@
                 html += '<div class="big-time">' + timeText + '</div>';  
                 html += '<div class="label" style="font-size:0.8rem">预计: ' + dateStr + '</div>';  
                 html += '</div></div>';  
-            }  
+            });  
+              
             container.innerHTML = html;  
         }  
   
@@ -232,8 +242,7 @@
             btn.disabled = true;  
             btn.style.opacity = "0.7";  
   
-            await new Promise(r => setTimeout(r, 500));  
-  
+            // 并发执行所有任务  
             updateDate();  
             await Promise.all([updatePrice(), updateBlocks()]);  
   
@@ -247,6 +256,7 @@
   
         refreshData();  
         setInterval(refreshData, 600000);  
+  
     </script>  
 </body>  
 </html>  
