@@ -11,9 +11,9 @@
     <meta name="theme-color" content="#0d1117">  
   
     <style>  
-        /* ==================== 1. 原有样式 (保留不动) ==================== */
+        /* ==================== 1. 原有样式 (绝对保留) ==================== */
         body { background-color: #0d1117; color: #c9d1d9; font-family: -apple-system, "SF Pro Text", sans-serif; margin: 0; padding: 20px 15px; display: flex; flex-direction: column; align-items: center; }  
-        h1 { font-size: 1.2rem; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; width: 100%; max-width: 600px; justify-content: space-between; }
+        h1 { font-size: 1.2rem; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; width: 100%; max-width: 600px; justify-content: space-between; }  
         .container { width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 15px; }  
           
         .card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 15px 20px; position: relative; overflow: hidden; }  
@@ -152,7 +152,11 @@
             <!-- JS 自动填充 -->
         </div>
         
-        <div class="tip">关机价 = (功耗 × 24 × 0.06) / 日产出BTC <br> 红色=已跌破 (买入信号)</div>
+        <div class="tip">
+            第一支撑: 成本线较高 (神马M60/M66)<br>
+            黄金坑: 主流效能 (海豹A2/神马M60S)<br>
+            钻石坑: 顶级能效 (蚂蚁S21/U3)
+        </div>
     </div>
   
     <script>  
@@ -161,13 +165,23 @@
         const BEAR_LOW = 38000;  
         const ELEC_COST = 0.06;
         
-        // 矿机数据库 (含 U3S23 Hyd.)
+        // === 矿机数据库 (您指定的新型号) ===
+        // 数据源参考：Bitmain/MicroBT/Bitdeer 官网规格
         const MINERS = [
-            { name: "蚂蚁 U3S23 Hyd.", hash: 1160, watts: 11020, tag: "未来机皇", color: "#3fb950" },
-            { name: "Antminer S21", hash: 200, watts: 3500, tag: "钻石坑", color: "#3fb950" },
-            { name: "Antminer S19 XP", hash: 141, watts: 3031, tag: "黄金坑", color: "#e6edf3" },
-            { name: "Antminer S19 Pro", hash: 110, watts: 3250, tag: "第一支撑", color: "#d29922" },
-            { name: "WhatsMiner M30S++", hash: 112, watts: 3472, tag: "第一支撑", color: "#d29922" }
+            // --- 第一支撑 (High Cost) ---
+            { name: "神马 M60", hash: 162, watts: 3240, tag: "第一支撑", color: "#d29922" },
+            { name: "神马 M66 (浸没)", hash: 252, watts: 5014, tag: "第一支撑", color: "#d29922" },
+
+            // --- 黄金坑 (Mid Efficiency) ---
+            { name: "神马 M60S", hash: 186, watts: 3441, tag: "黄金坑", color: "#e6edf3" },
+            { name: "神马 M63S (水冷)", hash: 390, watts: 7215, tag: "黄金坑", color: "#e6edf3" },
+            { name: "海豹 A2 (标准)", hash: 226, watts: 3729, tag: "黄金坑", color: "#e6edf3" }, 
+            { name: "海豹 A2 (水冷)", hash: 450, watts: 7200, tag: "黄金坑", color: "#e6edf3" }, // 估算规格
+
+            // --- 钻石坑 (Top Efficiency) ---
+            { name: "蚂蚁 S21 Hyd.", hash: 335, watts: 5360, tag: "钻石坑", color: "#3fb950" },
+            { name: "蚂蚁 S23 Hyd.", hash: 400, watts: 5200, tag: "钻石坑", color: "#3fb950" }, // 预估次世代规格
+            { name: "蚂蚁 U3S23H", hash: 1160, watts: 11020, tag: "钻石坑", color: "#3fb950" }
         ];
 
         // 全局状态
@@ -181,9 +195,8 @@
             document.getElementById('back-btn').classList.remove('hidden');
             document.getElementById('main-title').querySelector('span').innerText = "⛏️ 矿机风控雷达";
             
-            // 确保切换过来时，去获取一次难度
             if(currentDiff === 0) fetchDifficulty();
-            else renderMiners(); // 如果已有难度，直接渲染
+            else renderMiners();
         }
 
         function showHome() {
@@ -215,7 +228,7 @@
             document.getElementById('bear-days').innerText = diffBear + " 天";  
         }  
   
-        // === 价格获取 (多源 + 10秒) ===
+        // === 价格获取 ===
         async function updatePrice() {  
             var gapEl = document.getElementById('price-gap');  
             var timeEl = document.getElementById('last-update-time');  
@@ -223,7 +236,6 @@
             var price = 0;  
             var timestamp = new Date().getTime();  
   
-            // CoinCap 优先，Mempool 备选
             var apis = [  
                 { url: 'https://api.coincap.io/v2/assets/bitcoin?t=' + timestamp, type: 'coincap' },
                 { url: 'https://mempool.space/api/v1/prices?t=' + timestamp, type: 'mempool' }
@@ -248,20 +260,17 @@
             if (price > 0) {  
                 currentPrice = price;
                 
-                // 更新主页
                 var diff = Math.floor(price - BEAR_LOW);  
                 var drop = ((BULL_PEAK - price) / BULL_PEAK * 100).toFixed(2);  
                 gapEl.className = "val bright-red";   
                 if (diff > 0) gapEl.innerText = diff.toLocaleString() + " U (已跌" + drop + "%)";  
                 else gapEl.innerText = "已跌破底价!";  
   
-                // 更新时间
                 var now = new Date();  
                 timeEl.innerText = "更新于 " + now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0') + ":" + now.getSeconds().toString().padStart(2,'0');  
                 dotEl.classList.add('pulse-active');  
                 setTimeout(function() { dotEl.classList.remove('pulse-active'); }, 500);
 
-                // 更新矿机页
                 document.getElementById('miner-live-price').innerText = "$" + Math.floor(price).toLocaleString();
                 renderMiners();
             } 
@@ -270,34 +279,26 @@
         // === 难度获取 (Mempool 实时) ===
         async function fetchDifficulty() {
             try {
-                // 1. 获取最新区块 Hash
                 let r1 = await fetch('https://mempool.space/api/blocks/tip/hash');
                 let hash = await r1.text();
-                // 2. 获取区块详情（含难度）
                 let r2 = await fetch('https://mempool.space/api/block/' + hash);
                 let d = await r2.json();
-                
-                // 这里 d.difficulty 是实时动态的，未来难度变了，这里会自动变
                 currentDiff = d.difficulty; 
                 document.getElementById('network-diff').innerText = (currentDiff/1e12).toFixed(2) + " T";
-                
-                // 获取到难度后，刷新列表
                 renderMiners();
             } catch(e){
                 console.log("难度获取中...");
             }
         }
 
-        // === 矿机计算 (修正后) ===
+        // === 矿机计算 ===
         function renderMiners() {
-            // 只有当价格和难度都获取成功后才计算
             if(currentPrice === 0 || currentDiff === 0) return;
             
             const list = document.getElementById('miner-list');
             list.innerHTML = "";
             
-            // 修正公式：每日 86400 秒
-            // 日产出 = (3.125 * 86400 * 1T) / (Diff * 2^32)
+            // 日产出公式
             const btcPerTH = (3.125 * 86400 * 1000000000000) / (currentDiff * 4294967296);
 
             let data = MINERS.map(m => {
@@ -307,6 +308,7 @@
                 return {...m, shut};
             });
             
+            // 排序：关机价高 -> 低 (第一支撑在最上面)
             data.sort((a,b) => b.shut - a.shut);
 
             data.forEach(m => {
@@ -336,7 +338,7 @@
             });
         }
   
-        // === 原有区块高度逻辑 ===
+        // === 原有区块逻辑 ===
         async function fetchBlockHeight(url) {  
             try {  
                 var controller = new AbortController();  
@@ -352,7 +354,6 @@
             if(btcHeight) renderBlockData(btcHeight, 1050000, 840000, 600, 'btc');  
             var ltcData = await fetchBlockHeight('https://api.blockcypher.com/v1/ltc/main');  
             if(ltcData && ltcData.height) renderBlockData(ltcData.height, 3360000, 2520000, 150, 'ltc');  
-            // 顺便更新难度
             fetchDifficulty(); 
         }  
   
@@ -388,9 +389,7 @@
   
         manualRefresh();  
   
-        // 10秒 更新价格
         setInterval(function() { if (!document.hidden) updatePrice(); }, 10000);  
-        // 10分钟 更新难度和区块
         setInterval(function() { if (!document.hidden) { updateBlocks(); updateDate(); } }, 600000);  
     </script>  
 </body>  
