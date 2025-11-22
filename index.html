@@ -11,9 +11,9 @@
     <meta name="theme-color" content="#0d1117">  
   
     <style>  
-        /* === 基础样式 === */
-        body { background-color: #0d1117; color: #c9d1d9; font-family: -apple-system, "SF Pro Text", sans-serif; margin: 0; padding: 20px 15px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }  
-        h1 { font-size: 1.2rem; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; width: 100%; max-width: 600px; justify-content: space-between; }  
+        /* ==================== 1. 原有样式 (保留不动) ==================== */
+        body { background-color: #0d1117; color: #c9d1d9; font-family: -apple-system, "SF Pro Text", sans-serif; margin: 0; padding: 20px 15px; display: flex; flex-direction: column; align-items: center; }  
+        h1 { font-size: 1.2rem; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; width: 100%; max-width: 600px; justify-content: space-between; }
         .container { width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 15px; }  
           
         .card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 15px 20px; position: relative; overflow: hidden; }  
@@ -41,19 +41,22 @@
         .timer-box { background: rgba(0,0,0,0.2); margin-top: 15px; padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #30363d; }  
         .big-time { font-size: 1.5rem; font-weight: 800; color: #58a6ff; margin: 5px 0; letter-spacing: 0.5px; font-family: monospace; }  
           
-        .btn { margin-top: 20px; padding: 12px 30px; background: #238636; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; transition: opacity 0.2s; width: 100%; }  
+        .btn { margin-top: 30px; padding: 12px 30px; background: #238636; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; transition: opacity 0.2s; width: 100%; }  
         .btn:active { opacity: 0.8; }  
         .btn:disabled { background: #30363d; color: #8b949e; cursor: not-allowed; opacity: 1; }  
-        .tip { font-size: 12px; color: #484f58; margin-top: 10px; text-align: center; }  
+        .tip { font-size: 12px; color: #484f58; margin-top: 10px; text-align: center; width: 100%; }  
           
         .pulse-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: #3fb950; margin-left: 8px; opacity: 0; transition: opacity 0.3s; }  
         .pulse-active { opacity: 1; }  
         .update-time { font-size: 0.7rem; color: #8b949e; margin-top: 4px; text-align: right; }  
 
-        /* === 矿机样式 === */
+        /* ==================== 2. 矿机版块样式 ==================== */
         .hidden { display: none !important; }
-        .btn-outline { background: transparent; border: 1px solid #30363d; color: #58a6ff; margin-top: 15px; }
         
+        /* 镂空入口按钮 */
+        .btn-outline { background: transparent; border: 1px solid #30363d; color: #58a6ff; margin-top: 15px; margin-bottom: -10px; }
+        
+        /* 列表样式 */
         .miner-item { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 15px; margin-bottom: 10px; }
         .miner-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .miner-name { font-weight: bold; color: #e6edf3; font-size: 1rem; }
@@ -63,15 +66,15 @@
 </head>  
 <body>  
   
-    <!-- 标题栏 -->
     <h1 id="main-title">
         <span>📊 市场周期监控</span>
+        <!-- 返回按钮 -->
         <button id="back-btn" class="hidden" style="background:none; border:none; color:#58a6ff; font-size:0.9rem; cursor:pointer;" onclick="showHome()">
             ↩ 返回首页
         </button>
     </h1>  
   
-    <!-- ============ 1. 原有页面 ============ -->
+    <!-- ==================== 首页 (保留原样) ==================== -->
     <div id="home-container" class="container">  
         <div class="card pred-card">  
             <div class="row" style="border-bottom:none; padding-bottom:15px;">  
@@ -85,8 +88,6 @@
             <div style="margin:10px 0; border-top:1px dashed #30363d"></div>  
             <div class="row"><span class="label">距离牛市顶点已过</span><span class="val" id="peak-days">--</span></div>  
             <div class="row"><span class="label">距离熊市低点</span><span class="val white" id="bear-days">--</span></div>  
-              
-            <!-- 价格行 -->  
             <div class="row">  
                 <span class="label">距离最低点还差</span>  
                 <div style="text-align:right">  
@@ -129,14 +130,14 @@
             </div>  
         </div>  
 
-        <!-- 矿机入口 -->
+        <!-- 入口按钮 -->
         <button class="btn btn-outline" onclick="showMiner()">⛏️ 查询矿机关机币价</button>
   
         <button id="refresh-btn" class="btn" onclick="manualRefresh()">🔄 手动刷新全部</button>  
         <div class="tip">价格每 10 秒自动更新 | 数据可视化心跳</div>  
     </div>  
 
-    <!-- ============ 2. 矿机页面 ============ -->
+    <!-- ==================== 3. 矿机版块 (隐藏) ==================== -->
     <div id="miner-container" class="container hidden">
         <div class="card">
             <div class="row" style="border-bottom:none">
@@ -144,7 +145,7 @@
                 <span class="val white" id="miner-live-price">...</span>
             </div>
             <div class="row"><span class="label">基准电费</span><span class="val">$0.06 / kWh</span></div>
-            <div class="row"><span class="label">全网难度</span><span class="val" id="network-diff">Loading...</span></div>
+            <div class="row"><span class="label">全网难度 (实时)</span><span class="val" id="network-diff">Loading...</span></div>
         </div>
 
         <div id="miner-list">
@@ -155,26 +156,34 @@
     </div>
   
     <script>  
+        // 配置
         const BULL_PEAK = 126199;  
         const BEAR_LOW = 38000;  
         const ELEC_COST = 0.06;
+        
+        // 矿机数据库 (含 U3S23 Hyd.)
         const MINERS = [
-            { name: "WhatsMiner M30S++", hash: 112, watts: 3472, tag: "第一支撑", color: "#d29922" },
-            { name: "Antminer S19 Pro", hash: 110, watts: 3250, tag: "第一支撑", color: "#d29922" },
+            { name: "蚂蚁 U3S23 Hyd.", hash: 1160, watts: 11020, tag: "未来机皇", color: "#3fb950" },
+            { name: "Antminer S21", hash: 200, watts: 3500, tag: "钻石坑", color: "#3fb950" },
             { name: "Antminer S19 XP", hash: 141, watts: 3031, tag: "黄金坑", color: "#e6edf3" },
-            { name: "Antminer S21", hash: 200, watts: 3500, tag: "钻石坑", color: "#3fb950" }
+            { name: "Antminer S19 Pro", hash: 110, watts: 3250, tag: "第一支撑", color: "#d29922" },
+            { name: "WhatsMiner M30S++", hash: 112, watts: 3472, tag: "第一支撑", color: "#d29922" }
         ];
 
+        // 全局状态
         let currentPrice = 0;
         let currentDiff = 0;
 
+        // === 视图切换 ===
         function showMiner() {
             document.getElementById('home-container').classList.add('hidden');
             document.getElementById('miner-container').classList.remove('hidden');
             document.getElementById('back-btn').classList.remove('hidden');
             document.getElementById('main-title').querySelector('span').innerText = "⛏️ 矿机风控雷达";
+            
+            // 确保切换过来时，去获取一次难度
             if(currentDiff === 0) fetchDifficulty();
-            renderMiners();
+            else renderMiners(); // 如果已有难度，直接渲染
         }
 
         function showHome() {
@@ -184,6 +193,7 @@
             document.getElementById('main-title').querySelector('span').innerText = "📊 市场周期监控";
         }
 
+        // === 日期逻辑 ===
         function updateDate() {  
             var now = new Date();  
             document.getElementById('today-date').innerText = now.toLocaleDateString('zh-CN');  
@@ -205,7 +215,7 @@
             document.getElementById('bear-days').innerText = diffBear + " 天";  
         }  
   
-        // === 核心逻辑 1：多线路价格获取 ===
+        // === 价格获取 (多源 + 10秒) ===
         async function updatePrice() {  
             var gapEl = document.getElementById('price-gap');  
             var timeEl = document.getElementById('last-update-time');  
@@ -213,7 +223,7 @@
             var price = 0;  
             var timestamp = new Date().getTime();  
   
-            // 优先级：CoinCap -> Mempool
+            // CoinCap 优先，Mempool 备选
             var apis = [  
                 { url: 'https://api.coincap.io/v2/assets/bitcoin?t=' + timestamp, type: 'coincap' },
                 { url: 'https://mempool.space/api/v1/prices?t=' + timestamp, type: 'mempool' }
@@ -230,7 +240,6 @@
                         var data = await res.json();  
                         if (apis[i].type === 'coincap') price = parseFloat(data.data.priceUsd);  
                         else if (apis[i].type === 'mempool') price = parseFloat(data.USD);  
-                        
                         if (price > 0) break; 
                     }  
                 } catch (e) {}  
@@ -238,45 +247,58 @@
   
             if (price > 0) {  
                 currentPrice = price;
+                
+                // 更新主页
                 var diff = Math.floor(price - BEAR_LOW);  
                 var drop = ((BULL_PEAK - price) / BULL_PEAK * 100).toFixed(2);  
                 gapEl.className = "val bright-red";   
                 if (diff > 0) gapEl.innerText = diff.toLocaleString() + " U (已跌" + drop + "%)";  
                 else gapEl.innerText = "已跌破底价!";  
   
+                // 更新时间
                 var now = new Date();  
                 timeEl.innerText = "更新于 " + now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0') + ":" + now.getSeconds().toString().padStart(2,'0');  
                 dotEl.classList.add('pulse-active');  
                 setTimeout(function() { dotEl.classList.remove('pulse-active'); }, 500);
 
+                // 更新矿机页
                 document.getElementById('miner-live-price').innerText = "$" + Math.floor(price).toLocaleString();
                 renderMiners();
-            } else if(gapEl.innerText === "加载中...") {
-                gapEl.innerText = "连接中...";
-            }
+            } 
         }  
 
-        // === 核心逻辑 2：难度获取 ===
+        // === 难度获取 (Mempool 实时) ===
         async function fetchDifficulty() {
             try {
+                // 1. 获取最新区块 Hash
                 let r1 = await fetch('https://mempool.space/api/blocks/tip/hash');
                 let hash = await r1.text();
+                // 2. 获取区块详情（含难度）
                 let r2 = await fetch('https://mempool.space/api/block/' + hash);
                 let d = await r2.json();
-                currentDiff = d.difficulty;
+                
+                // 这里 d.difficulty 是实时动态的，未来难度变了，这里会自动变
+                currentDiff = d.difficulty; 
                 document.getElementById('network-diff').innerText = (currentDiff/1e12).toFixed(2) + " T";
-            } catch(e){}
+                
+                // 获取到难度后，刷新列表
+                renderMiners();
+            } catch(e){
+                console.log("难度获取中...");
+            }
         }
 
-        // === 核心逻辑 3：【已修复】矿机渲染公式 ===
+        // === 矿机计算 (修正后) ===
         function renderMiners() {
+            // 只有当价格和难度都获取成功后才计算
             if(currentPrice === 0 || currentDiff === 0) return;
+            
             const list = document.getElementById('miner-list');
             list.innerHTML = "";
             
-            // ★★★ 关键修复：乘上 86400 (每日秒数) ★★★
-            // 公式：(奖励 * 秒数 * 1T) / (难度 * 2^32)
-            const btcPerTH = (3.125 * 86400 * 1e12) / (currentDiff * 4294967296);
+            // 修正公式：每日 86400 秒
+            // 日产出 = (3.125 * 86400 * 1T) / (Diff * 2^32)
+            const btcPerTH = (3.125 * 86400 * 1000000000000) / (currentDiff * 4294967296);
 
             let data = MINERS.map(m => {
                 let rev = m.hash * btcPerTH;
@@ -314,6 +336,7 @@
             });
         }
   
+        // === 原有区块高度逻辑 ===
         async function fetchBlockHeight(url) {  
             try {  
                 var controller = new AbortController();  
@@ -329,6 +352,7 @@
             if(btcHeight) renderBlockData(btcHeight, 1050000, 840000, 600, 'btc');  
             var ltcData = await fetchBlockHeight('https://api.blockcypher.com/v1/ltc/main');  
             if(ltcData && ltcData.height) renderBlockData(ltcData.height, 3360000, 2520000, 150, 'ltc');  
+            // 顺便更新难度
             fetchDifficulty(); 
         }  
   
@@ -364,9 +388,9 @@
   
         manualRefresh();  
   
-        // 10秒更新价格
+        // 10秒 更新价格
         setInterval(function() { if (!document.hidden) updatePrice(); }, 10000);  
-        // 10分钟更新区块和难度
+        // 10分钟 更新难度和区块
         setInterval(function() { if (!document.hidden) { updateBlocks(); updateDate(); } }, 600000);  
     </script>  
 </body>  
